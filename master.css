@@ -1,0 +1,44 @@
+body {
+background-color: bisque;
+}
+
+.grid-container {
+display: grid;
+grid-template-columns: 1fr 1fr 1fr;
+grid-template-rows: auto;
+height: 100vh;
+place-items: center;
+}
+
+.grid-item {
+padding: 20px
+}
+
+.flex-item {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin: 55px;
+}
+
+.objects {
+
+}
+
+.sliders{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.sliders-box {
+width: 650px;
+height: 400px;
+background-color: lightblue;
+border: 2px solid black;
+border-radius: 15px;
+}
+
+.factors {
+
+}
