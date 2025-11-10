@@ -10,42 +10,72 @@
 <body>
     <div class="grid-container">
         <!-- ROW ONE-->
-        <div class="grid-item objects">
-            <div class="flex-item">
-                <button>zipee</button>
-                "ZIPEE"
-            </div>
-            <div class="flex-item">
-                <button>zipee</button>
-                "ZIPEE"
-            </div>
-            <div class="flex-item">
-                <button>zipee</button>
-                "ZIPEE"
+        <div class="checkbox-button-group">
+            <div class="grid-item">
+                <div class="flex-item">
+                    <input type="checkbox" id="myCheckbox" class="checkbox-input"/>
+                    <label for="myCheckbox" class="btn">
+                     Toggle Option
+                    </label>
+                </div>
+
+                <div class="flex-item">
+                    <input type="checkbox" id="myCheckbox" class="checkbox-input"/>
+                    <label for="myCheckbox" class="btn">
+                     Toggle Option
+                    </label>
+                </div>
+
+                <div class="flex-item">
+                    <input type="checkbox" id="myCheckbox" class="checkbox-input"/>
+                    <label for="myCheckbox" class="btn">
+                     Toggle Option
+                    </label>
+                </div>
             </div>
         </div>
         <!-- ROW TWO-->
         <div class="grid-item sliders-box sliders">
-            <div class="flex-item">"ZIPEEE"</div>
-            <div class="flex-item">"ZIPEEE"</div>
-            <div class="flex-item">"ZIPEEE"</div>
+            <div class="flex-item">                   
+                <div class="slider-container">
+                    <input type="range" min="0" max="100" value="50" class="vertical-slider" id="cenaSlider">
+                    <p id="cenaText">Cena: <span id="cenaSliderValue">-</span></p>
+                </div>
+            </div>
+            <div class="flex-item">
+                <div class="slider-container">
+                    <input type="range" min="0" max="100" value="50" class="vertical-slider" id="nabidkaSlider">
+                    <p id="nabidkaText">Nabídka: <span id="nabidkaSliderValue">-</span></p>
+                </div>
+            </div>
+            <div class="flex-item">
+                <div class="slider-container">
+                    <input type="range" min="0" max="100" value="50" class="vertical-slider" id="poptavkaSlider">
+                    <p id="poptavkaText">Poptávka: <span id="poptavkaSliderValue">-</span></p>
+                </div>
+            </div>
         </div>
 
         <!-- ROW THREE-->
-        <div class="grid-item factors">
-            <div class="flex-item">
-                <button>zipee</button>
-                "ZIPEE"
+            <div class="grid-item">
+                <div class="flex-item">
+                    <button>
+                        <img src="images/Maslo.png" class="img">
+                    </button>
+                </div>
+
+                <div class="flex-item">
+                    <button>
+                        <img src="images/Pivo.png" class="img">
+                    </button>
+                </div>
+
+                <div class="flex-item">
+                    <button>
+                        <img src="images/Palivo.png" class="img">
+                    </button>
+                </div>
             </div>
-            <div class="flex-item">
-                <button>zipee</button>
-                "ZIPEE"
-            </div>
-            <div class="flex-item">
-                <button>zipee</button>
-                "ZIPEE"
-            </div>
-        </div>
     </div>
 
 
