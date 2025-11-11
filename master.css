@@ -68,7 +68,7 @@ border-radius: 15px;
   appearance: none;
   width: 25px;
   height: 25px;
-  background: #4ed653;
+  background: darkblue;
   cursor: pointer;
   border-radius: 50%;
 }
@@ -76,10 +76,28 @@ border-radius: 15px;
 .vertical-slider::-moz-range-thumb {
   width: 25px;
   height: 25px;
-  background: #4ed653;
+  background: darkblue;
   cursor: pointer;
   border-radius: 50%;
 }
+
+#cenaSlider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 25px;
+    height: 25px;
+    background: red;
+    cursor: pointer;
+    border-radius: 50%;
+  }
+  
+#cenaSlider::-moz-range-thumb {
+    width: 25px;
+    height: 25px;
+    background: red;
+    cursor: pointer;
+    border-radius: 50%;
+  }
 
 .img {
   height: 150px;
