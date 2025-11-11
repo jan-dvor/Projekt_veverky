@@ -1,192 +1,166 @@
-// --- Step 1: Define Maximum Values and Get References ---
-let maxCena = 100;      // Set your desired max value for Cost
-let maxNabidka = 200;   // Set your desired max value for Supply
-let maxPoptavka = 400;  // Set your desired max value for Demand
+// --- Step 1: Define the Market Matrix (All 9 Scenarios) ---
+const marketMatrix = {
+    maslo: {
+        maxValues: { cena: 167, nabidka: 1000, poptavka: 1000 },
+        effects: {
+            default: { relationships: { cena: { poptavka: -1, nabidka: 1 } }, startValuesNormalized: { cena: 0.27, nabidka: 0.5, poptavka: 0.5 } },
+            covid: { relationships: { cena: { poptavka: -1, nabidka: 1 } }, startValuesNormalized: { cena: 0.16, nabidka: 0.5, poptavka: 0.65 } },
+            ukrajina: { relationships: { cena: { poptavka: -1, nabidka: 1 } }, startValuesNormalized: { cena: 0.33, nabidka: 0.3, poptavka: 0.4 } },
+            socialismus: { relationships: { cena: { poptavka: -1, nabidka: 1 } }, startValuesNormalized: { cena: 1, nabidka: 0.35, poptavka: 0.55 } }
+        }
+    },
+    pivo: {
+        maxValues: { cena: 96, nabidka: 1000, poptavka: 1000 },
+        effects: {
+            default: { relationships: { cena: { poptavka: -1, nabidka: 1 } }, startValuesNormalized: { cena: 0.5, nabidka: 0.5, poptavka: 0.6 } },
+            covid: { relationships: { cena: { poptavka: -1, nabidka: 1 } }, startValuesNormalized: { cena: 0.7, nabidka: 0.3, poptavka: 0.35 } },
+            ukrajina: { relationships: { cena: { poptavka: -1, nabidka: 1 } }, startValuesNormalized: { cena: 0.72, nabidka: 0.5, poptavka: 0.5 } },
+            socialismus: { relationships: { cena: { poptavka: -1, nabidka: 1 } }, startValuesNormalized: { cena: 0.73, nabidka: 0.7, poptavka: 0.9 } }
+        }
+    },
+    palivo: {
+        maxValues: { cena: 50, nabidka: 1000, poptavka: 1000 },
+        effects: {
+            default: { relationships: { cena: { poptavka: -1, nabidka: 1 } }, startValuesNormalized: { cena: 0.62, nabidka: 0.5, poptavka: 0.65 } },
+            covid: { relationships: { cena: { poptavka: -1, nabidka: 1 } }, startValuesNormalized: { cena: 0.48, nabidka: 0.5, poptavka: 0.1 } },
+            ukrajina: { relationships: { cena: { poptavka: -1, nabidka: 1 } }, startValuesNormalized: { cena: 1, nabidka: 0.2, poptavka: 0.8 } },
+            socialismus: { relationships: { cena: { poptavka: -0.05, nabidka: 0.05 } }, startValuesNormalized: { cena: 0.6, nabidka: 0.5, poptavka: 0.3 } }
+        }
+    }
+};
+
+// --- Step 2: State Management and Initial Setup ---
+let activeProductKey = 'maslo'; // 'maslo', 'pivo', or 'palivo'
+let activeScenarioKey = 'default'; // 'default', 'covid', 'ukrajina', 'socialismus'
 
 const sliders = {
-    cena: {
-        input: document.getElementById("cenaSlider"),
-        valueDisplay: document.getElementById("cenaSliderValue"),
-        textDisplay: document.getElementById("cenaText"),
-        max: maxCena
-    },
-    nabidka: {
-        input: document.getElementById("nabidkaSlider"),
-        valueDisplay: document.getElementById("nabidkaSliderValue"),
-        textDisplay: document.getElementById("nabidkaText"),
-        max: maxNabidka
-    },
-    poptavka: {
-        input: document.getElementById("poptavkaSlider"),
-        valueDisplay: document.getElementById("poptavkaSliderValue"),
-        textDisplay: document.getElementById("poptavkaText"),
-        max: maxPoptavka
-    }
+    cena: { input: document.getElementById("cenaSlider"), valueDisplay: document.getElementById("cenaSliderValue"), textDisplay: document.getElementById("cenaText"), max: 100 },
+    nabidka: { input: document.getElementById("nabidkaSlider"), valueDisplay: document.getElementById("nabidkaSliderValue"), textDisplay: document.getElementById("nabidkaText"), max: 200 },
+    poptavka: { input: document.getElementById("poptavkaSlider"), valueDisplay: document.getElementById("poptavkaSliderValue"), textDisplay: document.getElementById("poptavkaText"), max: 400 }
 };
 
-// --- Step 2: Define the relationships between sliders ---
-// These factors now work on a normalized scale (0-1)
-const relationships = {
-    cena: {
-        poptavka: 1,
-        nabidka: -1
-    },
-    nabidka: {
-        cena: -1
-    },
-    poptavka: {
-        cena: 1
-    }
-};
-
-// Store the last known normalized values (0-1) before a move starts.
+let relationships = {};
 let initialNormalizedValues = {};
 
-/**
- * --- Step 3: The Core Update Function (with Normalization) ---
- * @param {string} sourceSliderKey - The key of the slider being moved.
- */
+// --- Core Functions (These do not need to change) ---
 function updateSliders(sourceSliderKey) {
     const sourceSlider = sliders[sourceSliderKey];
-    // Convert current value to a normalized scale (0-1)
     let attemptedNormalizedValue = parseFloat(sourceSlider.input.value) / sourceSlider.max;
-
-    // --- Constraint Calculation (on a 0-1 scale) ---
-    let lowerLimitNormalized = 0;
-    let upperLimitNormalized = 1;
-
+    let lowerLimitNormalized = 0, upperLimitNormalized = 1;
     for (const targetSliderKey in sliders) {
         if (sourceSliderKey === targetSliderKey) continue;
-
-        if (relationships[sourceSliderKey] && relationships[sourceSliderKey][targetSliderKey]) {
+        if (relationships[sourceSliderKey]?.[targetSliderKey]) {
             const factor = relationships[sourceSliderKey][targetSliderKey];
             const initialSourceNormalized = initialNormalizedValues[sourceSliderKey];
             const initialTargetNormalized = initialNormalizedValues[targetSliderKey];
-
             const sourceNormAtTargetMax = initialSourceNormalized + (1 - initialTargetNormalized) / factor;
             const sourceNormAtTargetMin = initialSourceNormalized + (0 - initialTargetNormalized) / factor;
-
             if (factor > 0) {
                 upperLimitNormalized = Math.min(upperLimitNormalized, sourceNormAtTargetMax);
                 lowerLimitNormalized = Math.max(lowerLimitNormalized, sourceNormAtTargetMin);
-            } else { // factor < 0
+            } else {
                 upperLimitNormalized = Math.min(upperLimitNormalized, sourceNormAtTargetMin);
                 lowerLimitNormalized = Math.max(lowerLimitNormalized, sourceNormAtTargetMax);
             }
         }
     }
-
     const finalSourceNormalizedValue = Math.max(lowerLimitNormalized, Math.min(upperLimitNormalized, attemptedNormalizedValue));
-
-    // --- Update Sliders ---
     sourceSlider.input.value = finalSourceNormalizedValue * sourceSlider.max;
-
     const actualNormalizedChange = finalSourceNormalizedValue - initialNormalizedValues[sourceSliderKey];
-
     for (const targetSliderKey in sliders) {
         if (sourceSliderKey === targetSliderKey) continue;
-        if (relationships[sourceSliderKey] && relationships[sourceSliderKey][targetSliderKey]) {
+        if (relationships[sourceSliderKey]?.[targetSliderKey]) {
             const factor = relationships[sourceSliderKey][targetSliderKey];
             const newTargetNormalizedValue = initialNormalizedValues[targetSliderKey] + actualNormalizedChange * factor;
             sliders[targetSliderKey].input.value = newTargetNormalizedValue * sliders[targetSliderKey].max;
         }
     }
-
     updateAllDisplays();
 }
+function updateAllDisplays() { for (const key in sliders) { const slider = sliders[key]; const value = parseFloat(slider.input.value); const normalizedValue = value / slider.max; if (slider.valueDisplay) slider.valueDisplay.innerHTML = Math.round(value); if (normalizedValue < 0.15 || normalizedValue > 0.85) { slider.textDisplay.style.color = "red"; } else { slider.textDisplay.style.color = "black"; } } }
+function captureInitialValues() { for (const key in sliders) { initialNormalizedValues[key] = parseFloat(sliders[key].input.value) / sliders[key].max; } }
 
+// --- NEW: Unified State Update Function ---
 /**
- * A helper function to update the text display for all sliders.
+ * This is the new master function. It reads the active state and updates everything.
  */
-function updateAllDisplays() {
-    for (const key in sliders) {
-        const slider = sliders[key];
-        const value = parseFloat(slider.input.value);
-        const normalizedValue = value / slider.max;
+function updateMarketState() {
+    const productData = marketMatrix[activeProductKey];
+    const scenarioData = productData.effects[activeScenarioKey];
 
-        slider.valueDisplay.innerHTML = Math.round(value);
-
-        if (normalizedValue < 0.15 || normalizedValue > 0.85) {
-            slider.textDisplay.style.color = "red";
-        } else {
-            slider.textDisplay.style.color = "black";
-        }
+    if (!productData || !scenarioData) {
+        console.error("Invalid state:", activeProductKey, activeScenarioKey);
+        return;
     }
-}
 
-/**
- * A function to capture the state of all sliders in a normalized format (0-1).
- */
-function captureInitialValues() {
-    for (const key in sliders) {
-        initialNormalizedValues[key] = parseFloat(sliders[key].input.value) / sliders[key].max;
+    // 1. Update max values from the selected product
+    for (const key in productData.maxValues) {
+        sliders[key].max = productData.maxValues[key];
+        sliders[key].input.max = productData.maxValues[key];
     }
-}
 
-// --- Step 4: Attach Event Listeners ---
-for (const key in sliders) {
-    sliders[key].input.addEventListener('mousedown', captureInitialValues);
-    sliders[key].input.addEventListener('touchstart', captureInitialValues);
-    sliders[key].input.addEventListener('input', () => {
-        updateSliders(key);
-    });
-}
+    // 2. Update relationships from the selected scenario
+    relationships = scenarioData.relationships;
 
-// --- Step 5: Initialize the display and values on page load ---
-window.addEventListener('DOMContentLoaded', () => {
-    for (const key in sliders) {
-        sliders[key].input.max = sliders[key].max;
-        sliders[key].input.value = sliders[key].max / 2; // Start in the middle
+    // 3. Set the sliders to the scenario's starting values
+    for (const key in scenarioData.startValuesNormalized) {
+        const normalizedValue = scenarioData.startValuesNormalized[key];
+        sliders[key].input.value = normalizedValue * sliders[key].max;
     }
+
+    // 4. Sync the display and capture the new state
     updateAllDisplays();
     captureInitialValues();
 
-    const buttonMaslo = document.getElementById("btnMaslo");
-    const buttonPivo = document.getElementById("btnPivo");
-    const buttonPalivo = document.getElementById("btnPalivo");
+    console.log(`State Updated: Product=${activeProductKey}, Scenario=${activeScenarioKey}`);
+}
 
-    // --- Add Event Listener for Button 1 ---
-    btnMaslo.addEventListener('click', () => {
-        changeMaxValues(100, 200, 400); // Example: Low values
+// --- Event Listeners ---
+window.addEventListener('DOMContentLoaded', () => {
+    // Initial setup on page load
+    updateMarketState();
+
+    // Attach listeners to sliders
+    for (const key in sliders) {
+        sliders[key].input.addEventListener('mousedown', captureInitialValues);
+        sliders[key].input.addEventListener('touchstart', captureInitialValues);
+        sliders[key].input.addEventListener('input', () => updateSliders(key));
+    }
+
+    // BUTTON Event Listeners
+    document.getElementById("btnMaslo").addEventListener('click', () => {
+        activeProductKey = 'maslo';
+        updateMarketState();
+    });
+    document.getElementById("btnPivo").addEventListener('click', () => {
+        activeProductKey = 'pivo';
+        updateMarketState();
+    });
+    document.getElementById("btnPalivo").addEventListener('click', () => {
+        activeProductKey = 'palivo';
+        updateMarketState();
     });
 
-    // --- Add Event Listener for Button 2 ---
-    btnPivo.addEventListener('click', () => {
-        changeMaxValues(500, 1000, 2000); // Example: Medium values
-    });
+    // CHECKBOX Event Listeners
+    const checkboxes = {
+        checkCovid: 'covid',
+        checkUkrajina: 'ukrajina',
+        checkSocialismus: 'socialismus'
+    };
+    const allCheckboxes = Object.keys(checkboxes).map(id => document.getElementById(id));
 
-    // --- Add Event Listener for Button 3 ---
-    btnPalivo.addEventListener('click', () => {
-        changeMaxValues(1500, 3000, 6000); // Example: High values
+    allCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', (event) => {
+            if (event.target.checked) {
+                // Set the new active scenario
+                activeScenarioKey = checkboxes[event.target.id];
+                // Uncheck all others
+                allCheckboxes.forEach(cb => { if (cb !== event.target) cb.checked = false; });
+            } else {
+                // If unchecked, revert to default
+                activeScenarioKey = 'default';
+            }
+            updateMarketState();
+        });
     });
 });
-
-/**
- * --- Step 6: Function to Update Max Values ---
- * This function updates the maximum values of the sliders and resets them.
- * @param {number} newMaxCena - The new maximum value for the cena slider.
- * @param {number} newMaxNabidka - The new maximum value for the nabidka slider.
- * @param {number} newMaxPoptavka - The new maximum value for the poptavka slider.
- */
-function changeMaxValues(newMaxCena, newMaxNabidka, newMaxPoptavka) {
-    // Update the max values in our main sliders object
-    sliders.cena.max = newMaxCena;
-    sliders.nabidka.max = newMaxNabidka;
-    sliders.poptavka.max = newMaxPoptavka;
-
-    // Update the 'max' attribute on the actual HTML elements
-    sliders.cena.input.max = newMaxCena;
-    sliders.nabidka.input.max = newMaxNabidka;
-    sliders.poptavka.input.max = newMaxPoptavka;
-
-    // Reset all sliders to their midpoint
-    for (const key in sliders) {
-        sliders[key].input.value = sliders[key].max / 2;
-    }
-
-    // Update the display to reflect the new values
-    updateAllDisplays();
-
-    // Recapture the initial normalized state for the next user interaction
-    captureInitialValues();
-}

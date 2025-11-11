@@ -1,5 +1,5 @@
 body {
-background-color: bisque;
+background-color: lightblue;
 }
 
 .grid-container {
@@ -34,7 +34,7 @@ margin: 55px;
 .sliders-box {
 width: 650px;
 height: 400px;
-background-color: lightblue;
+background-color: white;
 border: 2px solid black;
 border-radius: 15px;
 }
@@ -89,4 +89,25 @@ border-radius: 15px;
 
 .img:hover {
     cursor: pointer;
+}
+
+#nabidkaSliderValue {
+    display:none
+}
+
+#poptavkaSliderValue {
+    display:none
+}
+
+#nabidkaSlider {
+    pointer-events: none;
+}
+
+#poptavkaSlider {
+    pointer-events: none;
+}
+
+.checkbox-input {
+    transform: scale(3);
+    margin-right: 2rem;
 }
