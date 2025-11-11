@@ -130,14 +130,44 @@ window.addEventListener('DOMContentLoaded', () => {
     // BUTTON Event Listeners
     document.getElementById("btnMaslo").addEventListener('click', () => {
         activeProductKey = 'maslo';
+
+        document.getElementById("btnPivo");
+        document.getElementById("btnPalivo");
+        btnPivo.style.outline = "none";
+        btnPalivo.style.outline = "none";
+        btnMaslo.style.outline = "10px solid black";
+
+        document.getElementById("afterCenaText");
+        afterCenaText.textContent = "Kč/250g";
+
         updateMarketState();
     });
     document.getElementById("btnPivo").addEventListener('click', () => {
         activeProductKey = 'pivo';
+
+        document.getElementById("btnMaslo");
+        document.getElementById("btnPalivo");
+        btnMaslo.style.outline = "none";
+        btnPalivo.style.outline = "none";
+        btnPivo.style.outline = "10px solid black";
+
+        document.getElementById("afterCenaText");
+        afterCenaText.textContent = "Kč/0,5l";
+
         updateMarketState();
     });
     document.getElementById("btnPalivo").addEventListener('click', () => {
         activeProductKey = 'palivo';
+
+        document.getElementById("btnPivo");
+        document.getElementById("btnMaslo");
+        btnPivo.style.outline = "none";
+        btnMaslo.style.outline = "none";
+        btnPalivo.style.outline = "10px solid black";
+
+        document.getElementById("afterCenaText");
+        afterCenaText.textContent = "Kč/litr";
+
         updateMarketState();
     });
 

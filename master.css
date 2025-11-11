@@ -129,3 +129,8 @@ border-radius: 15px;
     transform: scale(3);
     margin-right: 2rem;
 }
+
+.p-container {
+  display: flex;
+  gap: 3px;
+}
