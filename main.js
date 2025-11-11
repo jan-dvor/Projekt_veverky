@@ -12,10 +12,10 @@ const marketMatrix = {
     pivo: {
         maxValues: { cena: 96, nabidka: 1000, poptavka: 1000 },
         effects: {
-            default: { relationships: { cena: { poptavka: -1, nabidka: 1 } }, startValuesNormalized: { cena: 0.5, nabidka: 0.5, poptavka: 0.6 } },
-            covid: { relationships: { cena: { poptavka: -1, nabidka: 1 } }, startValuesNormalized: { cena: 0.7, nabidka: 0.3, poptavka: 0.35 } },
-            ukrajina: { relationships: { cena: { poptavka: -1, nabidka: 1 } }, startValuesNormalized: { cena: 0.72, nabidka: 0.5, poptavka: 0.5 } },
-            socialismus: { relationships: { cena: { poptavka: -0.1, nabidka: 0.1 } }, startValuesNormalized: { cena: 0.73, nabidka: 0.7, poptavka: 0.9 } }
+            default: { relationships: { cena: { poptavka: -1, nabidka: 1 } }, startValuesNormalized: { cena: 0.25, nabidka: 0.5, poptavka: 0.6 } },
+            covid: { relationships: { cena: { poptavka: -1, nabidka: 1 } }, startValuesNormalized: { cena: 0.35, nabidka: 0.3, poptavka: 0.35 } },
+            ukrajina: { relationships: { cena: { poptavka: -1, nabidka: 1 } }, startValuesNormalized: { cena: 0.36, nabidka: 0.5, poptavka: 0.5 } },
+            socialismus: { relationships: { cena: { poptavka: -0.1, nabidka: 0.1 } }, startValuesNormalized: { cena: 0.37, nabidka: 0.7, poptavka: 0.9 } }
         }
     },
     palivo: {
