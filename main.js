@@ -1,26 +1,35 @@
-// --- Step 1: Get references to all slider and text elements ---
+// --- Step 1: Define Maximum Values and Get References ---
+let maxCena = 100;      // Set your desired max value for Cost
+let maxNabidka = 200;   // Set your desired max value for Supply
+let maxPoptavka = 400;  // Set your desired max value for Demand
+
 const sliders = {
     cena: {
         input: document.getElementById("cenaSlider"),
         valueDisplay: document.getElementById("cenaSliderValue"),
-        textDisplay: document.getElementById("cenaText")
+        textDisplay: document.getElementById("cenaText"),
+        max: maxCena
     },
     nabidka: {
         input: document.getElementById("nabidkaSlider"),
         valueDisplay: document.getElementById("nabidkaSliderValue"),
-        textDisplay: document.getElementById("nabidkaText")
+        textDisplay: document.getElementById("nabidkaText"),
+        max: maxNabidka
     },
     poptavka: {
         input: document.getElementById("poptavkaSlider"),
         valueDisplay: document.getElementById("poptavkaSliderValue"),
-        textDisplay: document.getElementById("poptavkaText")
+        textDisplay: document.getElementById("poptavkaText"),
+        max: maxPoptavka
     }
 };
 
 // --- Step 2: Define the relationships between sliders ---
+// These factors now work on a normalized scale (0-1)
 const relationships = {
     cena: {
         poptavka: 1,
+        nabidka: -1
     },
     nabidka: {
         cena: -1
@@ -30,62 +39,56 @@ const relationships = {
     }
 };
 
-// Store the last known values before a move starts.
-let initialValues = {};
+// Store the last known normalized values (0-1) before a move starts.
+let initialNormalizedValues = {};
 
 /**
- * --- Step 3: The Core Update Function (New, Robust Logic) ---
- * This function calculates movement constraints and updates all sliders.
+ * --- Step 3: The Core Update Function (with Normalization) ---
  * @param {string} sourceSliderKey - The key of the slider being moved.
  */
 function updateSliders(sourceSliderKey) {
     const sourceSlider = sliders[sourceSliderKey];
-    let attemptedValue = parseFloat(sourceSlider.input.value);
+    // Convert current value to a normalized scale (0-1)
+    let attemptedNormalizedValue = parseFloat(sourceSlider.input.value) / sourceSlider.max;
 
-    // --- Constraint Calculation ---
-    // Start with the widest possible limits: the slider's own min/max.
-    let lowerLimit = 0;
-    let upperLimit = 100;
+    // --- Constraint Calculation (on a 0-1 scale) ---
+    let lowerLimitNormalized = 0;
+    let upperLimitNormalized = 1;
 
-    // Look at every target slider to see if it imposes a stricter limit.
     for (const targetSliderKey in sliders) {
         if (sourceSliderKey === targetSliderKey) continue;
 
         if (relationships[sourceSliderKey] && relationships[sourceSliderKey][targetSliderKey]) {
             const factor = relationships[sourceSliderKey][targetSliderKey];
-            const initialSourceValue = initialValues[sourceSliderKey];
-            const initialTargetValue = initialValues[targetSliderKey];
+            const initialSourceNormalized = initialNormalizedValues[sourceSliderKey];
+            const initialTargetNormalized = initialNormalizedValues[targetSliderKey];
 
-            // Calculate the source values that would make the target hit 0 or 100.
-            // Formula: sourceValue = initialSourceValue + (targetLimit - initialTargetValue) / factor
-            const sourceValAtTargetMax = initialSourceValue + (100 - initialTargetValue) / factor;
-            const sourceValAtTargetMin = initialSourceValue + (0 - initialTargetValue) / factor;
+            const sourceNormAtTargetMax = initialSourceNormalized + (1 - initialTargetNormalized) / factor;
+            const sourceNormAtTargetMin = initialSourceNormalized + (0 - initialTargetNormalized) / factor;
 
-            // The factor's sign determines which value is the new upper/lower limit.
             if (factor > 0) {
-                upperLimit = Math.min(upperLimit, sourceValAtTargetMax);
-                lowerLimit = Math.max(lowerLimit, sourceValAtTargetMin);
+                upperLimitNormalized = Math.min(upperLimitNormalized, sourceNormAtTargetMax);
+                lowerLimitNormalized = Math.max(lowerLimitNormalized, sourceNormAtTargetMin);
             } else { // factor < 0
-                upperLimit = Math.min(upperLimit, sourceValAtTargetMin);
-                lowerLimit = Math.max(lowerLimit, sourceValAtTargetMax);
+                upperLimitNormalized = Math.min(upperLimitNormalized, sourceNormAtTargetMin);
+                lowerLimitNormalized = Math.max(lowerLimitNormalized, sourceNormAtTargetMax);
             }
         }
     }
 
-    // Clamp the user's attempted value within the calculated limits.
-    const finalSourceValue = Math.max(lowerLimit, Math.min(upperLimit, attemptedValue));
+    const finalSourceNormalizedValue = Math.max(lowerLimitNormalized, Math.min(upperLimitNormalized, attemptedNormalizedValue));
 
-    // Update the source slider's position visually.
-    sourceSlider.input.value = finalSourceValue;
-    
-    // Calculate the actual change and update all related sliders.
-    const actualChange = finalSourceValue - initialValues[sourceSliderKey];
+    // --- Update Sliders ---
+    sourceSlider.input.value = finalSourceNormalizedValue * sourceSlider.max;
+
+    const actualNormalizedChange = finalSourceNormalizedValue - initialNormalizedValues[sourceSliderKey];
 
     for (const targetSliderKey in sliders) {
         if (sourceSliderKey === targetSliderKey) continue;
         if (relationships[sourceSliderKey] && relationships[sourceSliderKey][targetSliderKey]) {
             const factor = relationships[sourceSliderKey][targetSliderKey];
-            sliders[targetSliderKey].input.value = initialValues[targetSliderKey] + actualChange * factor;
+            const newTargetNormalizedValue = initialNormalizedValues[targetSliderKey] + actualNormalizedChange * factor;
+            sliders[targetSliderKey].input.value = newTargetNormalizedValue * sliders[targetSliderKey].max;
         }
     }
 
@@ -99,10 +102,11 @@ function updateAllDisplays() {
     for (const key in sliders) {
         const slider = sliders[key];
         const value = parseFloat(slider.input.value);
+        const normalizedValue = value / slider.max;
 
         slider.valueDisplay.innerHTML = Math.round(value);
 
-        if (value < 15 || value > 85) {
+        if (normalizedValue < 0.15 || normalizedValue > 0.85) {
             slider.textDisplay.style.color = "red";
         } else {
             slider.textDisplay.style.color = "black";
@@ -111,21 +115,18 @@ function updateAllDisplays() {
 }
 
 /**
- * A function to capture the state of all sliders.
+ * A function to capture the state of all sliders in a normalized format (0-1).
  */
 function captureInitialValues() {
     for (const key in sliders) {
-        initialValues[key] = parseFloat(sliders[key].input.value);
+        initialNormalizedValues[key] = parseFloat(sliders[key].input.value) / sliders[key].max;
     }
 }
 
 // --- Step 4: Attach Event Listeners ---
 for (const key in sliders) {
-    // 'mousedown' and 'touchstart' capture the state right before a drag begins.
     sliders[key].input.addEventListener('mousedown', captureInitialValues);
     sliders[key].input.addEventListener('touchstart', captureInitialValues);
-
-    // 'input' fires continuously during the drag.
     sliders[key].input.addEventListener('input', () => {
         updateSliders(key);
     });
@@ -133,15 +134,59 @@ for (const key in sliders) {
 
 // --- Step 5: Initialize the display and values on page load ---
 window.addEventListener('DOMContentLoaded', () => {
-    // Loop through each slider in our sliders object
     for (const key in sliders) {
-        // Set its input element's value to 50
-        sliders[key].input.value = 50;
+        sliders[key].input.max = sliders[key].max;
+        sliders[key].input.value = sliders[key].max / 2; // Start in the middle
+    }
+    updateAllDisplays();
+    captureInitialValues();
+
+    const buttonMaslo = document.getElementById("btnMaslo");
+    const buttonPivo = document.getElementById("btnPivo");
+    const buttonPalivo = document.getElementById("btnPalivo");
+
+    // --- Add Event Listener for Button 1 ---
+    btnMaslo.addEventListener('click', () => {
+        changeMaxValues(100, 200, 400); // Example: Low values
+    });
+
+    // --- Add Event Listener for Button 2 ---
+    btnPivo.addEventListener('click', () => {
+        changeMaxValues(500, 1000, 2000); // Example: Medium values
+    });
+
+    // --- Add Event Listener for Button 3 ---
+    btnPalivo.addEventListener('click', () => {
+        changeMaxValues(1500, 3000, 6000); // Example: High values
+    });
+});
+
+/**
+ * --- Step 6: Function to Update Max Values ---
+ * This function updates the maximum values of the sliders and resets them.
+ * @param {number} newMaxCena - The new maximum value for the cena slider.
+ * @param {number} newMaxNabidka - The new maximum value for the nabidka slider.
+ * @param {number} newMaxPoptavka - The new maximum value for the poptavka slider.
+ */
+function changeMaxValues(newMaxCena, newMaxNabidka, newMaxPoptavka) {
+    // Update the max values in our main sliders object
+    sliders.cena.max = newMaxCena;
+    sliders.nabidka.max = newMaxNabidka;
+    sliders.poptavka.max = newMaxPoptavka;
+
+    // Update the 'max' attribute on the actual HTML elements
+    sliders.cena.input.max = newMaxCena;
+    sliders.nabidka.input.max = newMaxNabidka;
+    sliders.poptavka.input.max = newMaxPoptavka;
+
+    // Reset all sliders to their midpoint
+    for (const key in sliders) {
+        sliders[key].input.value = sliders[key].max / 2;
     }
 
-    // Now that the slider positions are set, update the text displays to match.
+    // Update the display to reflect the new values
     updateAllDisplays();
 
-    // It's also good practice to sync the initial state for the very first drag.
+    // Recapture the initial normalized state for the next user interaction
     captureInitialValues();
-});
+}
