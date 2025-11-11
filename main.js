@@ -6,7 +6,7 @@ const marketMatrix = {
             default: { relationships: { cena: { poptavka: -1, nabidka: 1 } }, startValuesNormalized: { cena: 0.27, nabidka: 0.5, poptavka: 0.5 } },
             covid: { relationships: { cena: { poptavka: -1, nabidka: 1 } }, startValuesNormalized: { cena: 0.16, nabidka: 0.5, poptavka: 0.65 } },
             ukrajina: { relationships: { cena: { poptavka: -1, nabidka: 1 } }, startValuesNormalized: { cena: 0.33, nabidka: 0.3, poptavka: 0.4 } },
-            socialismus: { relationships: { cena: { poptavka: -1, nabidka: 1 } }, startValuesNormalized: { cena: 1, nabidka: 0.35, poptavka: 0.55 } }
+            socialismus: { relationships: { cena: { poptavka: -0.1, nabidka: 0.1 } }, startValuesNormalized: { cena: 1, nabidka: 0.35, poptavka: 0.55 } }
         }
     },
     pivo: {
@@ -15,7 +15,7 @@ const marketMatrix = {
             default: { relationships: { cena: { poptavka: -1, nabidka: 1 } }, startValuesNormalized: { cena: 0.5, nabidka: 0.5, poptavka: 0.6 } },
             covid: { relationships: { cena: { poptavka: -1, nabidka: 1 } }, startValuesNormalized: { cena: 0.7, nabidka: 0.3, poptavka: 0.35 } },
             ukrajina: { relationships: { cena: { poptavka: -1, nabidka: 1 } }, startValuesNormalized: { cena: 0.72, nabidka: 0.5, poptavka: 0.5 } },
-            socialismus: { relationships: { cena: { poptavka: -1, nabidka: 1 } }, startValuesNormalized: { cena: 0.73, nabidka: 0.7, poptavka: 0.9 } }
+            socialismus: { relationships: { cena: { poptavka: -0.1, nabidka: 0.1 } }, startValuesNormalized: { cena: 0.73, nabidka: 0.7, poptavka: 0.9 } }
         }
     },
     palivo: {
